@@ -6,12 +6,11 @@ import os
 import pandas as pd
 import pathlib
 from PIL import Image
+import timeit
 
-def worker(files):
-    images = []
-    for file in files:
-        image = Image.open(file)
-        images.append(np.assarray(image))
+def worker(file):
+    image = Image.open(file)
+    return np.asarray(image)
 
 def read_images(*paths):
     """
@@ -23,17 +22,22 @@ def read_images(*paths):
     Returns:
         A numpy array consisting of the images.
     """
+    start_time = timeit.default_timer()
+    pool = multiprocessing.Pool()
     images = []
-    filenames = []
     if isinstance(paths, str):
         paths = [paths]
     for p in paths:
         path = pathlib.Path(p)
+        #images.extend(pool.map(worker, path.iterdir()))
+
         for file in path.iterdir():
-            filenames.append(file)
             image = Image.open(file)
             images.append(np.asarray(image))
-    return np.array(images), filenames
+
+    print("Time elapsed for reading image files: {:.2f} seconds"\
+          .format(timeit.default_timer() - start_time))
+    return np.array(images)
 
 
 def read_steering_angle(*paths):
@@ -49,4 +53,5 @@ def read_steering_angle(*paths):
 
 if __name__ == '__main__':
     HOME = os.getenv('HOME')
-    images, filenames = read_images(HOME + '/data/driving_sim_track1_1/IMG')
+    images = read_images(HOME + '/data/driving_sim_track1_1/IMG')
+    print(images)
