@@ -75,9 +75,9 @@ def telemetry(sid, data):
             filename = 'center_' + timestamp
             image_filename = os.path.join(image_folder, filename)
             image.save('{}.jpg'.format(image_filename))
-            log = os.path.join(args.image_folder, 'auto_driving_log.csv')
+            log = os.path.join(args.image_folder, 'driving_log.csv')
             with open(log, 'a') as output:
-                output.writelines(image_filename + ', ' + str(steering_angle) + '\n') 
+                output.writelines(image_filename + '.jpg, ' + str(steering_angle) + '\n') 
     else:
         # NOTE: DON'T EDIT THIS.
         sio.emit('manual', data={}, skip_sid=True)

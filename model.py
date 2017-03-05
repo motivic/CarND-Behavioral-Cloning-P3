@@ -42,9 +42,10 @@ def parse_log_entry(log_entry):
     else:
         steering_idx = 3
     frames = []
-    for file in l[:idx]:
+    for file in l[:steering_idx]:
         image = Image.open(file)
         frames.append(np.asarray(image))
+    angle = float(l[steering_idx])
     angles = [angle]
     if steering_idx == 3:
         angles.extend([angle+0.2, angle-0.2])
