@@ -2,7 +2,7 @@
 
 from itertools import chain
 from keras.models import Model, Sequential
-from keras.layers import Input, Dense, Flatten, Activation, Lambda
+from keras.layers import Conv2D, Cropping2D, Dense, Dropout, Flatten, Lambda
 import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
@@ -34,11 +34,13 @@ def parse_log_entry(log_entry):
         steering angles.
     """
     l = log_entry.split(',')
+    angle = np.float32(l[3])
     frames = []
     for file in l[:3]:
         image = Image.open(file)
         frames.append(np.asarray(image))
-    return frames, [np.float32(l[3])]*3
+    return frames, [angle, angle + 0.2, angle - 0.2]
+
 
 def parse_driving_log(*paths):
     """ Return a list of the image frames and a list of the
@@ -67,32 +69,58 @@ def parse_driving_log(*paths):
     return images, steering_angles
 
 
-def trim_imgaes(images):
-    """
+def train_model(X_train, y_train):
+    """ Train and save a convolutional neural network based on
+    the one proposed by Nvidia.
 
     Args:
-        images:
-
-    Returns:
-
+        X_train: Features data consisting of images.
+        y_train: Steering angles.
     """
-    pass
-
-def train_model(X_train, y_train):
     model = Sequential()
+    # Cropping
+    model.add(Cropping2D(cropping=((50, 20), (0, 0)),
+                         input_shape=(160, 320, 3)))
+    # Normalizing and zero-centering
     model.add(Lambda(lambda x: x/255 - 0.5,
-                     input_shape=(160, 320, 3)))
-    model.add(Flatten())
-    model.add(Dense(1))
+                     input_shape=(90, 320, 3)))
 
+    # Follow Nvidia's architecture
+    # Convolutional layer 1
+    model.add(Conv2D(24, 5, 5, activation='relu', subsample=(2, 2),
+                     input_shape=(90, 320, 3)))
+    # Convolutional layer 2
+    model.add(Conv2D(36, 5, 5, activation='relu', subsample=(2, 2),
+                     input_shape=(43, 158, 24)))
+    # Convolutional layer 3
+    model.add(Conv2D(48, 5, 5, activation='relu', subsample=(2, 2),
+                     input_shape=(20, 77, 36)))
+    # Convolutional layer 4
+    model.add(Conv2D(64, 3, 3, activation='relu', subsample=(2, 2),
+                     input_shape=(8, 37, 48)))
+    # Convolutional layer 5
+    model.add(Conv2D(72, 3, 3, activation='relu', subsample=(1, 1),
+                     input_shape=(3, 18, 64)))
+    # Fully-connected layer 1
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(100, activation='relu'))
+    # Fully-connected layer 2
+    model.add(Dense(50, activation='relu'))
+    # Fully-connected layer 3
+    model.add(Dense(10, activation='relu'))
+    # Fully-connected layer 4
+    model.add(Dense(1))
     model.compile(loss='mse', optimizer='adam')
     model.fit(X_train, y_train, validation_split=0.2,
               batch_size=FLAGS.batch_size, shuffle=True,
-              nb_epoch=FLAGS.epochs)
+              nb_epoch=FLAGS.epochs, verbose=1)
     model.save('model.h5')
 
 
 def main(_):
+    """ Reads in images and trains convolutional neural network.
+    """
     # Read in images (X) and steering angles (y)
     images = []
     steering_angles = []
@@ -116,12 +144,7 @@ def main(_):
     # Add horizontally flipped images
     X_flipped = X[:,:,::-1,:]
     X = np.concatenate([X, X_flipped], 0)
-    y = np.concatenate([y, y], 0)
-
-    # Trim
-    #X_train, X_val, y_train, y_val = train_test_split(X, y)
-    #print(X_train.shape)
-    #print(y_train.shape)
+    y = np.concatenate([y, np.negative(y)], 0)
 
     # Train ConvNet model
     train_model(X, y)
