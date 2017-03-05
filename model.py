@@ -69,6 +69,22 @@ def parse_driving_log(*paths):
     return images, steering_angles
 
 
+def plot_loss(history_obj):
+    """ Plots training and validation loss over the epochs.
+
+    Args:
+        history_obj: The history object returned by fitting the model.
+    """
+    plt.plot(history_obj.history['loss'])
+    plt.plot(history_obj.history['val_loss'])
+    plt.title('model mean squared error loss')
+    plt.ylabel('mean squared error loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'],
+               loc='upper right')
+    plt.show()
+
+
 def train_model(X_train, y_train):
     """ Train and save a convolutional neural network based on
     the one proposed by Nvidia.
@@ -111,10 +127,12 @@ def train_model(X_train, y_train):
     model.add(Dense(10, activation='relu'))
     # Fully-connected layer 4
     model.add(Dense(1))
+    model.summary()
     model.compile(loss='mse', optimizer='adam')
     history = model.fit(X_train, y_train, validation_split=0.2,
                         batch_size=FLAGS.batch_size, shuffle=True,
                         nb_epoch=FLAGS.epochs, verbose=1)
+    plot_loss(history)
     model.save('model.h5')
 
 
