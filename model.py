@@ -3,6 +3,7 @@
 from itertools import chain
 from keras.models import Model, Sequential
 from keras.layers import Conv2D, Cropping2D, Dense, Dropout, Flatten, Lambda
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
@@ -129,9 +130,17 @@ def train_model(X_train, y_train):
     model.add(Dense(1))
     model.summary()
     model.compile(loss='mse', optimizer='adam')
+    # Add model checkpoint
+    filepath = "weights-improvement-{epoch:02d}-{val_acc:.2f}.h5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1,
+                                 save_best_only=True, mode='max')
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.0001,
+                                   patience=5, mode='auto')
+    callback_list = [checkpoint, early_stopping]
     history = model.fit(X_train, y_train, validation_split=0.2,
                         batch_size=FLAGS.batch_size, shuffle=True,
-                        nb_epoch=FLAGS.epochs, verbose=1)
+                        nb_epoch=FLAGS.epochs, callbacks=callback_list,
+                        verbose=1)
     plot_loss(history)
     model.save('model.h5')
 
@@ -157,7 +166,6 @@ def main(_):
     X = np.array(images)
     y = np.array(steering_angles)
 
-    # Preprocessing
     # Add horizontally flipped images
     X_flipped = X[:,:,::-1,:]
     X = np.concatenate([X, X_flipped], 0)
@@ -165,6 +173,7 @@ def main(_):
 
     # Train ConvNet model
     train_model(X, y)
+
 
 if __name__ == '__main__':
     tf.app.run()
