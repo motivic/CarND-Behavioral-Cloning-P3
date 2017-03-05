@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from itertools import chain
-from keras.models import Model
-from keras.layers import Input, Dense, Flatten, Activation
+from keras.models import Model, Sequential
+from keras.layers import Input, Dense, Flatten, Activation, Lambda
 import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
@@ -67,18 +67,6 @@ def parse_driving_log(*paths):
     return images, steering_angles
 
 
-def flip_images(images):
-    """
-
-    Args:
-        images:
-
-    Returns:
-
-    """
-    pass
-
-
 def trim_imgaes(images):
     """
 
@@ -89,6 +77,19 @@ def trim_imgaes(images):
 
     """
     pass
+
+def train_model(X_train, y_train):
+    model = Sequential()
+    model.add(Lambda(lambda x: x/255 - 0.5,
+                     input_shape=(160, 320, 3)))
+    model.add(Flatten())
+    model.add(Dense(1))
+
+    model.compile(loss='mse', optimizer='adam')
+    model.fit(X_train, y_train, validation_split=0.2,
+              batch_size=FLAGS.batch_size, shuffle=True,
+              nb_epoch=FLAGS.epochs)
+    model.save('model.h5')
 
 
 def main(_):
@@ -107,19 +108,23 @@ def main(_):
               .format(log=file, elapse=timeit.default_timer() - start_time))
         images.extend(imgs)
         steering_angles.extend(angles)
+        break
     X = np.array(images)
     y = np.array(steering_angles)
 
     # Preprocessing
+    # Add horizontally flipped images
     X_flipped = X[:,:,::-1,:]
-    img = Image.fromarray(X_flipped[0])
-    img.save('flipped.jpg')
-    img = Image.fromarray(X[0])
-    img.save('original.jpg')
-    X_train, X_val, y_train, y_val = train_test_split(X, y)
+    X = np.concatenate([X, X_flipped], 0)
+    y = np.concatenate([y, y], 0)
+
+    # Trim
+    #X_train, X_val, y_train, y_val = train_test_split(X, y)
+    #print(X_train.shape)
+    #print(y_train.shape)
 
     # Train ConvNet model
-
+    train_model(X, y)
 
 if __name__ == '__main__':
     tf.app.run()
