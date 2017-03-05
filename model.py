@@ -131,11 +131,11 @@ def train_model(X_train, y_train):
     model.summary()
     model.compile(loss='mse', optimizer='adam')
     # Add model checkpoint
-    filepath = "weights-improvement-{epoch:02d}-{val_acc:.2f}.h5"
-    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1,
-                                 save_best_only=True, mode='max')
+    filepath = "weights-improvement-{epoch:02d}-{val_loss:.4f}.h5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1,
+                                 save_best_only=True, mode='min')
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.0001,
-                                   patience=5, mode='auto')
+                                   patience=10, mode='auto')
     callback_list = [checkpoint, early_stopping]
     history = model.fit(X_train, y_train, validation_split=0.2,
                         batch_size=FLAGS.batch_size, shuffle=True,
