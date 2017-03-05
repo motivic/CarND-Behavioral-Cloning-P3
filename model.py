@@ -34,7 +34,7 @@ def parse_log_entry(log_entry):
         steering angles.
     """
     l = log_entry.split(',')
-    angle = np.float32(l[3])
+    angle = float(l[3])
     frames = []
     for file in l[:3]:
         image = Image.open(file)
@@ -112,9 +112,9 @@ def train_model(X_train, y_train):
     # Fully-connected layer 4
     model.add(Dense(1))
     model.compile(loss='mse', optimizer='adam')
-    model.fit(X_train, y_train, validation_split=0.2,
-              batch_size=FLAGS.batch_size, shuffle=True,
-              nb_epoch=FLAGS.epochs, verbose=1)
+    history = model.fit(X_train, y_train, validation_split=0.2,
+                        batch_size=FLAGS.batch_size, shuffle=True,
+                        nb_epoch=FLAGS.epochs, verbose=1)
     model.save('model.h5')
 
 
@@ -136,7 +136,6 @@ def main(_):
               .format(log=file, elapse=timeit.default_timer() - start_time))
         images.extend(imgs)
         steering_angles.extend(angles)
-        break
     X = np.array(images)
     y = np.array(steering_angles)
 
