@@ -68,11 +68,16 @@ def telemetry(sid, data):
         print(steering_angle, throttle)
         send_control(steering_angle, throttle)
 
-        # save frame
+        # save frame and log
         if args.image_folder != '':
+            image_folder = args.image_folder + '/IMG'
             timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-            image_filename = os.path.join(args.image_folder, timestamp)
+            filename = 'center_' + timestamp
+            image_filename = os.path.join(image_folder, filename)
             image.save('{}.jpg'.format(image_filename))
+            log = os.path.join(args.image_folder, 'auto_driving_log.csv')
+            with open(log, 'a') as output:
+                output.writelines(image_filename + ', ' + str(steering_angle) + '\n') 
     else:
         # NOTE: DON'T EDIT THIS.
         sio.emit('manual', data={}, skip_sid=True)
@@ -125,9 +130,11 @@ if __name__ == '__main__':
         print("Creating image folder at {}".format(args.image_folder))
         if not os.path.exists(args.image_folder):
             os.makedirs(args.image_folder)
+            os.makedirs(args.image_folder + '/IMG')
         else:
             shutil.rmtree(args.image_folder)
             os.makedirs(args.image_folder)
+            os.makedirs(args.image_folder + '/IMG')
         print("RECORDING THIS RUN ...")
     else:
         print("NOT RECORDING THIS RUN ...")

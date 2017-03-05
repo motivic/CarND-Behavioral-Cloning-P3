@@ -35,12 +35,20 @@ def parse_log_entry(log_entry):
         steering angles.
     """
     l = log_entry.split(',')
-    angle = float(l[3])
+    # Set the index in the log_entry where we find the steering angle:
+    # 1 for data generated autonomously and 2 for manually generated data
+    if len(l) == 2:
+        steering_idx = 1
+    else:
+        steering_idx = 3
     frames = []
-    for file in l[:3]:
+    for file in l[:idx]:
         image = Image.open(file)
         frames.append(np.asarray(image))
-    return frames, [angle, angle + 0.2, angle - 0.2]
+    angles = [angle]
+    if steering_idx == 3:
+        angles.extend([angle+0.2, angle-0.2])
+    return frames, angles
 
 
 def parse_driving_log(*paths):
