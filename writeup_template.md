@@ -114,7 +114,7 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 ####2. Final Model Architecture
 
-The final model architecture (`model.py` lines 98-139) consisted of a convolution neural network with the following layers and layer sizes (output of `model.summary()`):
+The final model architecture (`model.py` lines 98-139) consisted of a convolution neural network with the following layers and layer sizes (output of `model.summary`):
 <pre>
 Layer (type)                     Output Shape          Param #     Connected to                     
 ====================================================================================================
@@ -150,34 +150,31 @@ dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]
 
 To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
 
-![alt text][examples/center_2017_03_04_08_36_08_703.jpg]
+![alt text](examples/center_2017_03_04_08_36_08_703.jpg)
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+I used the images taken for left and right dashcams to simulate the effect of correcting back from the side to the center.
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+![alt text](examples/left_2017_03_04_08_36_08_703.jpg)
+![alt text](examples/right_2017_03_04_08_36_08_703.jpg)
 
-Then I repeated this process on track two in order to get more data points.
+The steering angles are adjusted by +0.2 and -0.2 for these images from the actual steering angle.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+I then recorded the car driving in the counter-clockwise direction in the same fashion.
 
-![alt text][image6]
-![alt text][image7]
+Then I repeated this process on track two in order to get more data points. Moreover, I also drove in the left lane in both clockwise and
+counter-wise direction to generate even more data.
 
-Etc ....
+To augment the data sat, I also flipped images and angles thinking that this would help to balance the number of left turns and right turns.
+For example, here is an image that has then been flipped:
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-For track 2, I also drove both clockwise and counter-clockwise around the track, while trying
-to stay between the lane lines on the right side. Then I repeated the clockwise and counter-clockwise
-drives but tried to stay between the lane lines on the left side. This gave me four sets of training
-data for track 2.
+![alt text](examples/horizontal_flip1.jpg)
+![alt text](examples/horizontal_flip2.jpg)
 
 Finally, after training an initial model using these data, I modified `drive.py` to generate
 more training data through autonomous driving. The updated code is in `generate_data.py`. I used
 a speed limit of 20 to generate the new data.
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+I finally randomly shuffled the data set and put 20% of the data into a validation set. 
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+I used this training data for training the model. The validation set helped determine if the model was over or under fitting. 
+The ideal number of epochs was 3 in training the final model. I used an adam optimizer so that manually training the learning rate wasn't necessary.
