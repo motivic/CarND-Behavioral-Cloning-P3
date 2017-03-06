@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from itertools import chain
-from keras.models import Model, Sequential
+from keras.models import Sequential
 from keras.layers import Conv2D, Cropping2D, Dense, Dropout, Flatten, Lambda
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
@@ -10,7 +10,6 @@ import multiprocessing
 import os
 import pathlib
 from PIL import Image
-from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import timeit
 
