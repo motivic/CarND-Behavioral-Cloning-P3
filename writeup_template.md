@@ -101,24 +101,56 @@ In order to combat overfitting, I added a dropout layer with 0.5 probability of 
 convolutional layer and the first fully-connected layer). Moreover, I enabled checkpoint and early-stopping callbacks to save the best performing
 model so far (based on validation loss) and terminate the training early if the validation loss does not improve in 3 epochs (lines 144-147).
 
-The final step was to run the simulator to see how well the car was driving around track one. 
-There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
+These design decision, together with the large amount of training data we generated (see (3.) below), the first model trained performed
+quite well driving around track one and track two at the default speed. When I modified the speed from 9 to 20, the model continued to perform
+ well on track one but consistently fell off the track on track two. To fix this, instead of modifying the model, I decided to generate more
+ (and higher quality) training data by modifying `drive.py` to create training data through the autonomous mode.
+ 
+With the additional training data, I retrained the model and it performed well on both tracks. See [this YouTube video](https://www.youtube.com/watch?v=-NvJF6Zed8Y) 
+for autonomous driving on track two with the final model at 18 mph. The dashcam footage for autonomous driving on track one is available
+as `video.mp4`.
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
 ####2. Final Model Architecture
 
-The final model architecture (`model.py` lines 98-139) consisted of a convolution neural network with the following layers and layer sizes:
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
+The final model architecture (`model.py` lines 98-139) consisted of a convolution neural network with the following layers and layer sizes (output of `model.summary()`):
+<pre>
+Layer (type)                     Output Shape          Param #     Connected to                     
+====================================================================================================
+cropping2d_1 (Cropping2D)        (None, 90, 320, 3)    0           cropping2d_input_1[0][0]         
+____________________________________________________________________________________________________
+lambda_1 (Lambda)                (None, 90, 320, 3)    0           cropping2d_1[0][0]               
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 43, 158, 24)   1824        lambda_1[0][0]                   
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 20, 77, 36)    21636       convolution2d_1[0][0]            
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 8, 37, 48)     43248       convolution2d_2[0][0]            
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 3, 18, 64)     27712       convolution2d_3[0][0]            
+____________________________________________________________________________________________________
+convolution2d_5 (Convolution2D)  (None, 1, 16, 72)     41544       convolution2d_4[0][0]            
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 1152)          0           convolution2d_5[0][0]            
+____________________________________________________________________________________________________
+dropout_1 (Dropout)              (None, 1152)          0           flatten_1[0][0]                  
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 100)           115300      dropout_1[0][0]                  
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 50)            5050        dense_1[0][0]                    
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 10)            510         dense_2[0][0]                    
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]                    
+====================================================================================================
+</pre>
 
 ####3. Creation of the Training Set & Training Process
 
 To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
 
-![alt text][image2]
+![alt text][examples/center_2017_03_04_08_36_08_703.jpg]
 
 I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
 
